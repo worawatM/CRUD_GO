@@ -83,23 +83,20 @@ func updateBooks(w http.ResponseWriter, r *http.Request) {
 // Have Some Bug in Function Delete
 func deleteBooks(w http.ResponseWriter, r *http.Request) {
 	// var idParam string = mux.Vars(r)["id"]
-	idParam := mux.Vars(r)["id"]
-	id, err := strconv.Atoi(idParam)
-	id = id - 1
+	idParam := mux.Vars(r)
+	id, err := strconv.Atoi(idParam["id"])
 	if err != nil {
-		w.WriteHeader(400)
-		w.Write([]byte("ID could not be convert to Integer"))
+		http.Error(w, "Invalid User ID", http.StatusBadRequest)
 		return
 	}
-	if id > len(books) {
-		w.WriteHeader(404)
-		w.Write([]byte("Don't have This Book in Data"))
-		return
+	for i, book := range books {
+		if book.ID == id {
+			books = append(books[:i], books[i+1:]...)
+			w.WriteHeader(http.StatusOK)
+			return
+		}
 	}
-
-	books = append(books[:id], books[:id+1]...)
-	w.WriteHeader(200)
-
+	http.Error(w, "User not Found", http.StatusNotFound)
 }
 func main() {
 	r := mux.NewRouter()
